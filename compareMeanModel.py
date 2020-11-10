@@ -18,6 +18,10 @@ class MeanModel:
         self.armean_res = armean.fit()
         self.cmean_res = cmean.fit()
         self.zeromean_res = zeromean.fit()
+        print(self.armean_res)
+        print(self.cmean_res)
+        print(self.zeromean_res)
+
         self.arvol = self.armean_res.conditional_volatility
         self.cvol = self.cmean_res.conditional_volatility
         self.zerovol = self.zeromean_res.conditional_volatility

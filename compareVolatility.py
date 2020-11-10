@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 from arch import arch_model
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from statsmodels.stats.diagnostic import acorr_ljungbox
 
 class VolatilityModel:
 
@@ -11,13 +14,25 @@ class VolatilityModel:
 
     def construct(self):
         p,q = 1,1
-        gm = arch_model(self.returns, p=p, q=q, vol='garch', dist='skewt')
-        egm = arch_model(self.returns, p=p, q=q, o=1, vol='egarch', dist='skewt')
-        gjr_gm = arch_model(self.returns, p=p, q=q, o=1,vol='garch', dist='skewt')
-        self.gm_res = gm.fit()
-        self.egm_res = egm.fit()
-        self.gjr_gm_res = gjr_gm.fit()
+        self.gm = arch_model(self.returns, p=3, q=3, mean='AR',vol='garch', dist='normal')
+        self.egm = arch_model(self.returns, p=1, q=1, o=1, mean='AR',vol='egarch', dist='normal')
+        self.gjr_gm = arch_model(self.returns, p=1, q=3, o=1, mean='AR',vol='garch', dist='normal')
+        self.gm_res = self.gm.fit()
+        print(self.gm_res.arch_lm_test())
+        self.egm_res = self.egm.fit()
+        print(self.egm_res.arch_lm_test())
+        self.gjr_gm_res = self.gjr_gm.fit()
+        print(self.gjr_gm_res.arch_lm_test())
 
+        print(self.gm_res.summary())
+        print(self.egm_res.summary())
+        print(self.gjr_gm_res.summary())
+
+    def ljungboxtest(self):
+
+        print('P-values:', acorr_ljungbox(self.gm_res.std_resid, lags=10)[1])
+        print('P-values:', acorr_ljungbox(self.egm_res.std_resid, lags=10)[1])
+        print('P-values:', acorr_ljungbox(self.gjr_gm_res.std_resid, lags=10)[1])
 
     def plot(self):
         plt.plot(self.returns, color='grey', alpha=0.4, label = 'Returns')
@@ -29,7 +44,33 @@ class VolatilityModel:
         plt.show()
 
     def forecast(self):
-        train, test = self.returns[:len(self.returns)*0.9], self.returns[len(self.returns)*0.1 + 1]
+        rolling_predictions = {}
+        test_size = 300
+        end_loc = len(self.returns)-test_size
+        train = 0
+        for i in range(test_size):
+            train = self.returns[:-(test_size-i)]
+            print(len(train))
+            model = arch_model(train, p=3, q=3)
+            model_fit = model.fit(first_obs=i, last_obs=i+end_loc,disp='off')
+            pred = model_fit.forecast(horizon=1).variance
+            fcast = pred.iloc[i+end_loc - 1]
+            rolling_predictions[fcast.name] = fcast
 
-        
+        rolling_predictions = pd.DataFrame(rolling_predictions).T
+        plt.plot(self.returns[-test_size:], color= 'grey')
+        plt.plot(rolling_predictions, color='red')
+        plt.title('Volatility Prediction - Rolling forecast', fontsize = 20)
+        plt.legend(['True Returns', 'Predicted'], fontsize=16)
+        plt.show()
+        self.evaluation(self.returns[-test_size:], rolling_predictions)
+
+    def evaluation(self, observation, prediction):
+
+        mse = mean_squared_error(observation, prediction)
+        print("Mean squared error: {:.3g}".format(mse))
+
+        mae = mean_absolute_error(observation, prediction)
+        print("Mean absolute error: {:.3g}".format(mae))
+
 
