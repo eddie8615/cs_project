@@ -40,7 +40,7 @@ class VolatilityModel:
         plt.plot(self.gjr_gm_res.conditional_volatility, color='red', label = 'GJR-GARCH volatility')
         plt.plot(self.egm_res.conditional_volatility, color='blue', label = 'EGARCH volatility')
 
-        plt.legend(loc = 'upper right')
+        plt.legend(loc = 'lower left')
         plt.show()
 
     def forecast(self):
