@@ -42,7 +42,7 @@ def main():
     vol_model = cv.VolatilityModel(currency_rate, returns)
     # vol_model.ljungboxtest()
     vol_model.plot()
-    # vol_model.forecast()
+    vol_model.forecast()
 
 if __name__ == "__main__":
     main()
