@@ -14,11 +14,10 @@ def read(infile):
 
     data = data.dropna()
 
-    data['Daily_log_return'] = 100 * np.log(data['Close'] / data['Close'].shift(1))
     data['Daily_trading_range'] = data['High'] - data['Low']
-    data['Log_Volume_change'] = 100 * np.log(data['Volume'] / data['Volume'].shift(1))
-    data['Daily_return'] = 100 * data['Close'].pct_change()
-
+    data['Log_Volume_change'] = np.log((data['Volume'] / data['Volume'].shift(1)))*100
+    data['Daily_return'] = data['Close'].pct_change()
+    data['Daily_log_return'] = np.log(1+data['Daily_return'])*100
 
     target = yz_vol_measure(data)
     data['Target'] = target
