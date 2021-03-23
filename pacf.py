@@ -10,9 +10,9 @@ import easyargs
 
 @easyargs
 def main(infile):
-    data = dr.read(infile)
+    data,source = dr.read(infile)
 
-    plot_pacf(data['Daily_log_return']**2)
+    plot_pacf(data['Daily_log_return'].dropna()**2)
 
     outfile = dr.write(infile)
     outfile = outfile.split(".")[0]+"-pacf.png"

@@ -12,25 +12,31 @@ def read(infile):
     with open(infile, 'r') as f:
         data = pd.read_csv(infile)
 
-    data = data.dropna()
-
     data['Daily_trading_range'] = data['High'] - data['Low']
     data['Log_Volume_change'] = np.log((data['Volume'] / data['Volume'].shift(1)))*100
     data['Daily_return'] = data['Close'].pct_change().dropna()
-    # data['Daily_log_return'] = np.log(1+data['Daily_return'])*100
     data['Daily_log_return'] = np.log(data['Close'] / data['Close'].shift(1))
-    # volatility = np.sqrt((data['Daily_log_return']**2).rolling(window=22).sum()/22)*np.sqrt(252)
-    target = yz_vol_measure(data)
-    # target = pd.DataFrame(volatility)
+    data = data.dropna()
 
-    data['Target'] = target
+    data['Past_vol22'] = data['Daily_log_return'].rolling(window=22).std() * np.sqrt(252)
+    data['Past_vol10'] = data['Daily_log_return'].rolling(window=10).std() * np.sqrt(252)
+
+    volatility = np.sqrt((data['Daily_log_return']**2).rolling(window=22).sum()/21)*np.sqrt(252)
+    # target = yz_vol_measure(data)
+    # target10 = yz_vol_measure(data, window=10)
+    target = pd.DataFrame(volatility)
+
+    data['Target22'] = target
+    # data['Target10'] = target10
 
     return data, file_name.split('.')[0]
 
 # This method refers to Yang-Zhang volatility measure for making ground truth of the volatility
 def yz_vol_measure(data, window=22, trading_periods=252):
     nHigh = np.log(data['High'] / data['Open'])
+    high2 = np.log(data['High']/data['Close'])
     nLow = np.log(data['Low'] / data['Open'])
+    low2 = np.log(data['Low']/ data['Close'])
     nClose = np.log(data['Close'] / data['Open'])
 
     log_oc = np.log(data['Open'] / data['Close'].shift(1))
@@ -39,7 +45,8 @@ def yz_vol_measure(data, window=22, trading_periods=252):
     log_cc = np.log(data['Close'] / data['Close'].shift(1))
     log_cc_sq = log_cc ** 2
 
-    rs = nHigh * (nHigh - nClose) + nLow * (nLow - nClose)
+    # rs = nHigh * (nHigh - nClose) + nLow * (nLow - nClose)
+    rs = (high2 * (nHigh - nClose) + low2 * (nLow - nClose))/window
 
     close_vol = log_cc_sq.rolling(
         window=window,
@@ -54,7 +61,7 @@ def yz_vol_measure(data, window=22, trading_periods=252):
         center=False
     ).sum() * (1.0 / (window - 1.0))
 
-    k = 0.34 / (1 + (window + 1) / (window - 1))
+    k = 0.34 / (1.34 + (window + 1) / (window - 1))
     result = (open_vol + k * close_vol + (1 - k) * window_rs).apply(np.sqrt) * math.sqrt(trading_periods)
 
     return result

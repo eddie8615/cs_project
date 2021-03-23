@@ -1,4 +1,6 @@
 from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+import matplotlib as plt
 import data_reader as dr
 import easyargs
 import pandas as pd
@@ -10,7 +12,9 @@ def main(infile):
     # reading data from data_reader at this file is not cleaned due to producing GARCH and EGARCH forecasts
     data = data.dropna()
     print(data)
-    dtf = pd.DataFrame(data.loc[:, 'Daily_log_return':])
+    dtf = pd.DataFrame(data['Daily_log_return'])
+
+
     # print(dtf.describe())
     # print("----------Kurtosis-----------")
     # print(dtf.kurtosis())
