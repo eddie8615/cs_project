@@ -14,7 +14,6 @@ def main(infile):
     print(data)
     dtf = pd.DataFrame(data['Daily_log_return'])
 
-
     # print(dtf.describe())
     # print("----------Kurtosis-----------")
     # print(dtf.kurtosis())
