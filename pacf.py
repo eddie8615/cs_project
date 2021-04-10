@@ -9,15 +9,15 @@ import data_reader as dr
 import easyargs
 
 @easyargs
-def main(infile):
-    data,source = dr.read(infile)
+def main():
+    data = dr.read()
 
     plot_pacf(data['Daily_log_return'].dropna()**2)
 
-    outfile = dr.write(infile)
+    outfile = dr.write()
     outfile = outfile.split(".")[0]+"-pacf.png"
     with open(outfile, 'w') as f:
-        plt.savefig(f"{outfile}")
+        # plt.savefig(f"{outfile}")
         plt.show()
 
     return None

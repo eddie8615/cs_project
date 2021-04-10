@@ -22,15 +22,13 @@ def read():
     data['Daily_return'] = price['Close'].pct_change().dropna()
     data['Daily_log_return'] = np.log(price['Close'] / price['Close'].shift(1))
     data['Index'] = price['Close']
-    data['Past_vol22'] = data['Daily_log_return'].rolling(window=22).std() * np.sqrt(252)
+    data['Past_vol22'] = np.sqrt((data['Daily_log_return']**2).rolling(window=22).std()) * np.sqrt(252)
 
     data['gold'] = gold['Close']
     data['oil'] = oil['Close']
 
-    data = data.dropna()
-
-    volatility = np.sqrt((data['Daily_log_return']**2).rolling(window=22).sum()/21)*np.sqrt(252)
-    vol10 = np.sqrt((data['Daily_log_return']**2).rolling(window=10).sum()/9)*np.sqrt(252)
+    volatility = np.sqrt((data['Daily_log_return']**2).rolling(window=22).sum()/22)*np.sqrt(252)
+    vol10 = np.sqrt((data['Daily_log_return']**2).rolling(window=10).sum()/10)*np.sqrt(252)
     # target = yz_vol_measure(data)
     # target10 = yz_vol_measure(data, window=10)
     target22 = pd.DataFrame(volatility)
@@ -38,6 +36,8 @@ def read():
 
     data['Target22'] = target22
     data['Target10'] = target10
+    # data = data.dropna()
+
     # data['Target10'] = target10
 
     return data
