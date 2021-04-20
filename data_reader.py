@@ -6,8 +6,9 @@ import math
 
 def read_data(window=22):
     price = pd.read_csv('dataset/kospi.csv')
-    oil = pd.read_csv('dataset/oilprice.csv')
+    # oil = pd.read_csv('dataset/oilprice.csv')
     # gold = pd.read_csv('dataset/goldprice.csv')
+    price = price.dropna()
     data = pd.DataFrame()
     data['Date'] = price['Date']
     data['Daily_trading_range'] = price['High'] - price['Low']
@@ -16,11 +17,11 @@ def read_data(window=22):
     data['Daily_log_return'] = np.log(price['Close'] / price['Close'].shift(1))
     data['Index'] = price['Close']
     # data['gold'] = gold['Close']
-    data['oil'] = oil['Close']
+    # data['oil'] = oil['Close']
     data = data.dropna().reset_index(drop=True)
 
     data = data.iloc[:-window]
-    volatility = np.sqrt((data['Daily_log_return'] ** 2).rolling(window=window).sum() / window) * np.sqrt(252)
+    volatility =(data['Daily_log_return']).rolling(window=window).std() * np.sqrt(252)
 
     # target = yz_vol_measure(data)
     # target10 = yz_vol_measure(data, window=10)
