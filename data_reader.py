@@ -20,14 +20,15 @@ def read_data(window=22):
     # data['oil'] = oil['Close']
     data = data.dropna().reset_index(drop=True)
 
-    data = data.iloc[:-window]
     volatility =(data['Daily_log_return']).rolling(window=window).std() * np.sqrt(252)
+    # data = data.iloc[:-window]
+    data['past_vol'] = volatility
+    data = data.dropna().reset_index(drop=True)
 
     # target = yz_vol_measure(data)
     # target10 = yz_vol_measure(data, window=10)
     target = pd.DataFrame()
-    target['Target'] = volatility[window:].reset_index(drop=True)
-    # target['Target'] = volatility[22:].reset_index(drop=True)
+    target['Target'] = volatility[42:].reset_index(drop=True)
     target = target.dropna()
 
     # data['Target10'] = target10
